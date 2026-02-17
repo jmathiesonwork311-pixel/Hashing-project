@@ -26,6 +26,7 @@ class hashMap {
   void insert(T first);
   void insert(T first, V second);
   void clear();
+  V& search(T value);
   ~hashMap();
 };
 
@@ -34,20 +35,18 @@ template <typename T, typename V>
 void hashMap<T, V>::increaseSize() {
   total = 0;
   pair<hashNode<T, V>, state>* temp = table;
-  //New table, so doubling the hashTable.
+  // New table, so doubling the hashTable.
   table = new pair<hashNode<T, V>, state>[space << 1];
   int oldSize = space;
-  //Double space
+  // Double space
   space <<= 1;
 
   for (int i = 0; i < space; i++) {
     table[i].second = state::EMPTY;
   }
-  //Reinserts all values.
+  // Reinserts all values.
   for (int i = 0; i < oldSize; i++) {
-
     if (temp[i].second == state::USED) {
-
       insert(temp[i].first.first, temp[i].first.second);
     }
   }
@@ -57,23 +56,23 @@ void hashMap<T, V>::increaseSize() {
 template <typename T, typename V>
 
 hashMap<T, V>::hashMap() {
-  //Constructs table starting ith ten values.
+  // Constructs table starting ith ten values.
   table = new pair<hashNode<T, V>, state>[10];
   for (int i = 0; i < 10; i++) {
-    //Sets values to empty state.
+    // Sets values to empty state.
     table[i].second = state::EMPTY;
   }
   space = 10;
   total = 0;
 }
 template <typename T, typename V>
-//Can't really do deletion so it sets to graveyard.
+// Can't really do deletion so it sets to graveyard.
 void hashMap<T, V>::erase(std::size_t index) {
   table[index].second = state::GRAVEYARD;
   return;
 }
 template <typename T, typename V>
-//Hashes the values then inserts using quadratic probing open addressing.
+// Hashes the values then inserts using quadratic probing open addressing.
 void hashMap<T, V>::insert(T first) {
   int position = myHash(first) % space;
   int quadratic = 0;
@@ -91,7 +90,7 @@ void hashMap<T, V>::insert(T first) {
   return;
 }
 template <typename T, typename V>
-//Same insertion as before but ith a second value.
+// Same insertion as before but ith a second value.
 void hashMap<T, V>::insert(T first, V second) {
   int position = myHash(first) % space;
   int quadratic = 0;
@@ -108,7 +107,7 @@ void hashMap<T, V>::insert(T first, V second) {
   return;
 }
 template <typename T, typename V>
-//Clears the values and resets the table.
+// Clears the values and resets the table.
 void hashMap<T, V>::clear() {
   delete[] table;
   table = new pair<hashNode<T, V>, state>[10];
@@ -119,7 +118,26 @@ void hashMap<T, V>::clear() {
   total = 0;
 }
 template <typename T, typename V>
-//Deletes it.
+V& hashMap<T, V>::search(T value) {
+  int position = myHash(value) % space;
+  int quadratic = 0;
+  int temp = 0;
+  // Loops through looking for graveyards.
+  while (table[(position + temp) % space].second != state::EMPTY &&
+         table[(position + temp) % space].first.first != value) {
+    quadratic++;
+    temp = (quadratic * quadratic);
+  }
+  if (table[(position + temp) % space].second == state::EMPTY) {
+    insert(value);
+    return (search(value));
+
+  } else {
+    return (table[(position + temp) % space].first.second);
+  }
+}
+template <typename T, typename V>
+// Deletes it.
 hashMap<T, V>::~hashMap() {
   delete[] table;
 }
